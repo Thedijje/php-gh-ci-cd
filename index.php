@@ -1,4 +1,4 @@
 <?php
 
 echo "Hello PHP project";
-echo "New feature added to the app";
+echo "<br>New feature added to the app";
