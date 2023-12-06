@@ -29,26 +29,4 @@ jobs:
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
 
-          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
-          echo "Runner labels: $RUNNER_LABELS"
-
-          echo "::set-output name=runner_labels::${RUNNER_LABELS}"
-
-  deploy:
-    needs: fetch-runners
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        runner_label: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy code on runner
-        run: |
-          echo "Running deployment on runner ${{ matrix.runner_label }}"
-          cd /home/bitnami/htdocs/php-gh-ci-cd
-          git pull origin main
-          echo "Deployment success"
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith
