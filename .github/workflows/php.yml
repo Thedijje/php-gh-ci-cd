@@ -1,4 +1,4 @@
-name: Prolly Production deployment
+name: Production deployment
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
 
-          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name' | tr '\n' ' ')
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name' | tr '\n' ',')
           echo "Runner labels: $RUNNER_LABELS"
 
           echo "::set-output name=runner_labels::$RUNNER_LABELS"
@@ -54,4 +54,4 @@ jobs:
         run: git pull origin main
 
       - name: Confirm deployment
-        run: echo "Prolly deployed on production"
+        run: echo "Deployed on production"
