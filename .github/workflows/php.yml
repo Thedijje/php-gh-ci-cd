@@ -34,20 +34,18 @@ jobs:
     needs: fetch-runners
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Read runner labels
+      - name: Deploy code on runner
         run: |
-          RUNNER_LABELS="${{ needs.fetch-runners.outputs.runner_labels }}"
-          echo "Runner labels: $RUNNER_LABELS"
-
-      - name: Deploy code on runners
-        run: |
-          for label in $RUNNER_LABELS; do
-            echo "Running deployment on runner $label"
-            cd /home/bitnami/htdocs/php-gh-ci-cd
-            git pull origin main
-            echo "Deployment success"
-          done
+          echo "Running deployment on runner ${{ matrix.runner }}"
+          cd /home/bitnami/htdocs/php-gh-ci-cd
+          git pull origin main
+          echo "Deployment success"
