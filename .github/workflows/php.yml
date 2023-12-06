@@ -34,16 +34,17 @@ jobs:
     needs: fetch-runners
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Generate matrix
+        id: generate-matrix
+        run: echo "::set-output name=matrix::runner:${{ needs.fetch-runners.outputs.runner_labels }}"
+
       - name: Deploy code on runner
+        strategy:
+          matrix: ${{ needs.deploy.outputs.matrix }}
         run: |
           echo "Running deployment on runner ${{ matrix.runner }}"
           cd /home/bitnami/htdocs/php-gh-ci-cd
