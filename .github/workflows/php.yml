@@ -29,7 +29,7 @@ jobs:
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
 
-          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name | sub("\\."; "_"; "g")')
           echo "Runner labels: $RUNNER_LABELS"
 
           echo "RUNNER_LABELS=${RUNNER_LABELS}" >> $GITHUB_ENV
@@ -47,7 +47,6 @@ jobs:
         run: |
           for label in $RUNNER_LABELS; do
             echo "Running deployment on runner $label"
-            cd /home/bitnami/htdocs/php-gh-ci-cd/
+            cd /home/bitnami/htdocs/php-gh-ci-cd
             git pull origin main
-            echo "Deployment successful"
           done
