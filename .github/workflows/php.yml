@@ -51,6 +51,7 @@ jobs:
         run: |
           for label in $RUNNER_LABELS; do
             echo "Running deployment on runner $label"
-            # Example deployment command: git pull origin main
-            # Replace the above line with your actual deployment command
+            cd /home/bitnami/htdocs/php-gh-ci-cd
+            git pull origin main
+            echo "Deployment success"
           done
