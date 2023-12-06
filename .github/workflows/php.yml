@@ -40,7 +40,7 @@ jobs:
 
     strategy:
       matrix:
-        runner_label: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
+        runner_label: ${{ fromJson(needs.fetch-runners.outputs.runner_labels) }}
 
     steps:
       - name: Checkout code
