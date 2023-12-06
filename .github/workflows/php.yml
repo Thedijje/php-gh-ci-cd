@@ -9,9 +9,6 @@ jobs:
   fetch-runners:
     runs-on: ubuntu-latest
 
-    outputs:
-      runner_labels: ${{ steps.set-output.outputs.runner_labels }}
-
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -29,11 +26,10 @@ jobs:
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
 
-          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name | sub("\\."; "_"; "g")')
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
           echo "Runner labels: $RUNNER_LABELS"
 
-          echo "RUNNER_LABELS=${RUNNER_LABELS}" >> $GITHUB_ENV
-          echo "::set-output name=runner_labels::${RUNNER_LABELS}"
+          echo "$RUNNER_LABELS" > runner_labels.txt
 
   deploy:
     needs: fetch-runners
@@ -43,10 +39,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Read runner labels
+        run: |
+          RUNNER_LABELS=$(cat runner_labels.txt)
+          echo "Runner labels: $RUNNER_LABELS"
+
       - name: Deploy code on runners
         run: |
           for label in $RUNNER_LABELS; do
             echo "Running deployment on runner $label"
-            cd /home/bitnami/htdocs/php-gh-ci-cd
-            git pull origin main
+            # Example deployment command: git pull origin main
+            # Replace the above line with your actual deployment command
           done
