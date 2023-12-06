@@ -1,9 +1,13 @@
-name: Parallel Deployment
+name: Prolly Production deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
   fetch-runners:
@@ -13,41 +17,41 @@ jobs:
       runner_labels: ${{ steps.set-output.outputs.runner_labels }}
 
     steps:
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Fetch all self-hosted runners
         id: set-output
         run: |
           TOKEN="${{ secrets.PAT }}"
           REPO="${{ github.repository }}"
           API_URL="https://api.github.com/repos/${REPO}/actions/runners"
+
           echo "Fetching runners for repository: $REPO"
           echo "GitHub API URL: $API_URL"
+
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
+
           RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name' | tr '\n' ' ')
           echo "Runner labels: $RUNNER_LABELS"
+
           echo "::set-output name=runner_labels::$RUNNER_LABELS"
 
   deploy:
     needs: fetch-runners
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        runner: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
+
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Read runner labels
-        run: |
-          RUNNER_LABELS="${{ needs.fetch-runners.outputs.runner_labels }}"
-          echo "Runner labels: $RUNNER_LABELS"
+      - name: go to directory
+        run: cd /home/bitnami/htdocs/php-gh-ci-cd
 
-      - name: Deploy code on runners
-        run: |
-          for label in $RUNNER_LABELS; do
-            echo "Running deployment on runner $label"
-            cd /home/bitnami/htdocs/php-gh-ci-cd
-            git pull origin main
-            echo "Deployment success"
-          done
+      - name: Fetch code
+        run: git pull origin main
+
+      - name: Confirm deployment
+        run: echo "Prolly deployed on production"
