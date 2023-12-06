@@ -9,6 +9,9 @@ jobs:
   fetch-runners:
     runs-on: ubuntu-latest
 
+    outputs:
+      runner_labels: ${{ steps.set-output.outputs.runner_labels }}
+
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -29,7 +32,7 @@ jobs:
           RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
           echo "Runner labels: $RUNNER_LABELS"
 
-          echo "$RUNNER_LABELS" > ./runner_labels.txt
+          echo "::set-output name=runner_labels::${RUNNER_LABELS}"
 
   deploy:
     needs: fetch-runners
@@ -41,7 +44,7 @@ jobs:
 
       - name: Read runner labels
         run: |
-          RUNNER_LABELS=$(cat ./runner_labels.txt)
+          RUNNER_LABELS="${{ needs.fetch-runners.outputs.runner_labels }}"
           echo "Runner labels: $RUNNER_LABELS"
 
       - name: Deploy code on runners
