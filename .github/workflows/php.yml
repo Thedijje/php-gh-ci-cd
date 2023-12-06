@@ -6,15 +6,18 @@ on:
       - main
 
 jobs:
-  deploy:
+  fetch-runners:
     runs-on: ubuntu-latest
+
+    outputs:
+      runner_labels: ${{ steps.set-output.outputs.runner_labels }}
 
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Fetch all self-hosted runners
-        id: fetch-runners
+        id: set-output
         run: |
           TOKEN="${{ secrets.PAT }}"
           REPO="${{ github.repository }}"
@@ -29,16 +32,22 @@ jobs:
           RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
           echo "Runner labels: $RUNNER_LABELS"
 
+          echo "RUNNER_LABELS=${RUNNER_LABELS}" >> $GITHUB_ENV
           echo "::set-output name=runner_labels::${RUNNER_LABELS}"
 
+  deploy:
+    needs: fetch-runners
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Deploy code on runners
         run: |
-          for label in ${{ needs.fetch-runners.outputs.runner_labels }}; do
+          for label in $RUNNER_LABELS; do
             echo "Running deployment on runner $label"
-            cd /home/bitnami/htdocs/php-gh-ci-cd
+            cd /home/bitnami/htdocs/php-gh-ci-cd/
             git pull origin main
-            echo "Deployment completed on $label"
+            echo "Deployment successful"
           done
