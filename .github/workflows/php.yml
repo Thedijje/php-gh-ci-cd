@@ -36,7 +36,7 @@ jobs:
 
       - name: Deploy code on runners
         run: |
-          for label in ${{ steps.fetch-runners.outputs.runner_labels }}; do
+          for label in ${{ needs.fetch-runners.outputs.runner_labels }}; do
             echo "Running deployment on runner $label"
             cd /home/bitnami/htdocs/php-gh-ci-cd
             git pull origin main
