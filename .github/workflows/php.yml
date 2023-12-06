@@ -20,8 +20,14 @@ jobs:
           REPO="${{ github.repository }}"
           API_URL="https://api.github.com/repos/${REPO}/actions/runners"
 
+          echo "Fetching runners for repository: $REPO"
+          echo "GitHub API URL: $API_URL"
+
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
+          echo "Fetched runners information: $RUNNERS"
+
           RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels | .[]' | grep '^ip_')
+          echo "Runner labels: $RUNNER_LABELS"
 
           echo "::set-output name=runner_labels::${RUNNER_LABELS}"
 
