@@ -38,15 +38,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Generate matrix
-        id: generate-matrix
-        run: echo "::set-output name=matrix::runner:${{ needs.fetch-runners.outputs.runner_labels }}"
-
-      - name: Deploy code on runner
-        strategy:
-          matrix: ${{ needs.deploy.outputs.matrix }}
+      - name: Read runner labels
         run: |
-          echo "Running deployment on runner ${{ matrix.runner }}"
-          cd /home/bitnami/htdocs/php-gh-ci-cd
-          git pull origin main
-          echo "Deployment success"
+          RUNNER_LABELS="${{ needs.fetch-runners.outputs.runner_labels }}"
+          echo "Runner labels: $RUNNER_LABELS"
+
+      - name: Deploy code on runners
+        run: |
+          for label in $RUNNER_LABELS; do
+            echo "Running deployment on runner $label"
+            cd /home/bitnami/htdocs/php-gh-ci-cd
+            git pull origin main
+            echo "Deployment success"
+          done
