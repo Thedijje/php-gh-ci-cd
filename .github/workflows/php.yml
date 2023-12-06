@@ -1,31 +1,34 @@
-name: PHP Composer
+name: Deploy to all runners
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
 
 jobs:
-  build:
-
-    runs-on: self-hosted
+  deploy:
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Clean up repo
-      run: git reset --hard
+      - name: Fetch all runners with ip_ prefix label
+        id: fetch-runners
+        uses: actions/runner/fetch-list@v2
+        outputs:
+          runners: ${{ steps.fetch-runners.outputs.runners }}
+          runners_with_ip_label: |
+            for runner in ${{ steps.fetch-runners.outputs.runners }}; do
+              if [[ "$runner.labels" =~ "ip_" ]]; then
+                echo "$runner.runner_url"
+              fi
+            done
 
-    - name: Update code from github
-      run: cd /home/bitnami/htdocs/php-gh-ci-cd/ && git pull origin main
-      
+      - name: Deploy to each runner
+        strategy:
+          matrix:
+            runner: ${{ steps.fetch-runners.outputs.runners_with_ip_label }}
 
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
-
-    # - name: Run test suite
-    #   run: composer run-script test
+        run: |
+          runner_url=${{ matrix.runner }}
+          curl -s $runner_url/actions/runners/registration-token | xargs git pull origin main
