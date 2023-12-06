@@ -17,17 +17,11 @@ jobs:
         uses: actions/runner/fetch-list@v2
         outputs:
           runners: ${{ steps.fetch-runners.outputs.runners }}
-          runners_with_ip_label: |
-            for runner in ${{ steps.fetch-runners.outputs.runners }}; do
-              if [[ "$runner.labels" =~ "ip_" ]]; then
-                echo "$runner.runner_url"
-              fi
-            done
 
       - name: Deploy to each runner
         strategy:
           matrix:
-            runner: ${{ steps.fetch-runners.outputs.runners_with_ip_label }}
+            runner: ${{ steps.fetch-runners.outputs.runners }}
 
         run: |
           runner_url=${{ matrix.runner }}
