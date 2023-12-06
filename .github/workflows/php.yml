@@ -7,6 +7,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner: ${{ steps.fetch-runners.outputs.runners }}
 
     steps:
       - name: Checkout repository
@@ -19,10 +22,6 @@ jobs:
           runners: ${{ steps.fetch-runners.outputs.runners }}
 
       - name: Deploy to each runner
-        strategy:
-          matrix:
-            runner: ${{ steps.fetch-runners.outputs.runners }}
-
         run: |
           runner_url=${{ matrix.runner }}
           curl -s $runner_url/actions/runners/registration-token | xargs git pull origin main
