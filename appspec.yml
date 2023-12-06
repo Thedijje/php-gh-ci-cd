@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /var/www/html/app
+permissions:
+  - object: /var/www/html/app
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
