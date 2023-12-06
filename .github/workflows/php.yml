@@ -1,27 +1,34 @@
-name: Deploy to all runners
+name: Parallel Deployment
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runner: ${{ steps.fetch-runners.outputs.runners }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Fetch all runners with ip_ prefix label
+      - name: Fetch all self-hosted runners
         id: fetch-runners
-        uses: actions/runner/fetch-list@v2
-        outputs:
-          runners: ${{ steps.fetch-runners.outputs.runners }}
-
-      - name: Deploy to each runner
         run: |
-          runner_url=${{ matrix.runner }}
-          curl -s $runner_url/actions/runners/registration-token | xargs git pull origin main
+          TOKEN="${{ secrets.PAT }}"
+          REPO="${{ github.repository }}"
+          API_URL="https://api.github.com/repos/${REPO}/actions/runners"
+
+          RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels | .[]' | grep '^ip_')
+
+          echo "::set-output name=runner_labels::${RUNNER_LABELS}"
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy code on runners
+        run: |
+          for label in ${{ steps.fetch-runners.outputs.runner_labels }}; do
+            echo "Running deployment on runner $label"
+            # Example deployment command: git pull origin main
+            # Replace the above line with your actual deployment command
+          done
