@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-        
+
       - name: Fetch all self-hosted runners
         id: fetch-runners
         run: |
