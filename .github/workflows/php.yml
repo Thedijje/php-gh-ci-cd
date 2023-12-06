@@ -26,7 +26,7 @@ jobs:
           RUNNERS=$(curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${API_URL}")
           echo "Fetched runners information: $RUNNERS"
 
-          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels | .[]' | grep '^ip_')
+          RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
           echo "Runner labels: $RUNNER_LABELS"
 
           echo "::set-output name=runner_labels::${RUNNER_LABELS}"
