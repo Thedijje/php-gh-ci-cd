@@ -36,11 +36,11 @@ jobs:
 
   deploy:
     needs: fetch-runners
+    runs-on: ubuntu-latest
+
     strategy:
       matrix:
         runner_label: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
-
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
