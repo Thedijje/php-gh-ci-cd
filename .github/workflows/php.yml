@@ -40,7 +40,7 @@ jobs:
 
     strategy:
       matrix:
-        runner_label: ${{ fromJson(needs.fetch-runners.outputs.runner_labels) }}
+        runner_label: ${{fromJson(needs.fetch-runners.outputs.runner_labels)}}
 
     steps:
       - name: Checkout code
@@ -49,6 +49,21 @@ jobs:
       - name: Deploy code on runner
         run: |
           echo "Running deployment on runner ${{ matrix.runner_label }}"
+          cd /home/bitnami/htdocs/php-gh-ci-cd
+          git pull origin main
+          echo "Deployment success"
+
+  dynamic-deploy:
+    needs: fetch-runners
+    runs-on: ${{ needs.fetch-runners.outputs.runner_labels }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy code on runner
+        run: |
+          echo "Running deployment on runner ${{ needs.fetch-runners.outputs.runner_labels }}"
           cd /home/bitnami/htdocs/php-gh-ci-cd
           git pull origin main
           echo "Deployment success"
