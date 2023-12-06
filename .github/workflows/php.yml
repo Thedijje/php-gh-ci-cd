@@ -29,7 +29,7 @@ jobs:
           RUNNER_LABELS=$(echo "${RUNNERS}" | jq -r '.runners[] | select(.status == "online") | .labels[] | select(.name | startswith("ip_")) | .name')
           echo "Runner labels: $RUNNER_LABELS"
 
-          echo "$RUNNER_LABELS" > runner_labels.txt
+          echo "$RUNNER_LABELS" > $GITHUB_WORKSPACE/runner_labels.txt
 
   deploy:
     needs: fetch-runners
@@ -41,7 +41,7 @@ jobs:
 
       - name: Read runner labels
         run: |
-          RUNNER_LABELS=$(cat runner_labels.txt)
+          RUNNER_LABELS=$(cat $GITHUB_WORKSPACE/runner_labels.txt)
           echo "Runner labels: $RUNNER_LABELS"
 
       - name: Deploy code on runners
